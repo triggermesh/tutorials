@@ -126,3 +126,17 @@ kubewclt get webhooksource -n tm-nodejs ws-with-node
 NAME           READY   REASON   URL                                                                 SINK                                                AGE
 ws-with-node   True             https://webhooksource-ws-with-node-tm-nodejs.piper.triggermesh.io   http://demo-rb-broker.tm-nodejs.svc.cluster.local   78s
 ```
+
+### Clean Up
+
+The easiest way to clean up would be.
+
+```console
+kubectl delete webhooksources.sources.triggermesh.io -n tm-nodejs ws-with-node
+```
+
+But we would suggest extending the code remove it programatically. It is as simple as slightly modifying one line at the provided code!
+
+```js
+        const whs = await kubeclient.apis[webhookSourceCRD.spec.group].v1alpha1.namespaces(namespace).webhooksources('ws-with-node').delete();
+```
