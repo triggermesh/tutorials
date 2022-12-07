@@ -35,6 +35,12 @@ The [Webhook resource JSON](components/webhooksource-cr.json) is also provided. 
 
 ### Code It
 
+>
+> **NOTE**
+>
+> If you are checking out the project from this tutorial skip the `npm` commands that set it up. You only need to install the dependencies using `npm install`
+>
+
 Setup your project.
 
 ```console
@@ -54,11 +60,60 @@ const { Client, KubeConfig } = require('kubernetes-client');
 const Request = require('kubernetes-client/backends/request');
 ```
 
-TODO go throught the rest of the code
+CRDs are schemas that will validate and make it easy to code Kubernetes objects. These schemas can be retrieved from the live cluster or provided to the application locally, which is what we are doing here. First we load the CRD then the object that will be created (CR), into a variable. Feel free to modify the CR in your own way.
+
+```js
+const webhookSourceCRD = require('./components/webhooksource-crd.json');
+const webhookSourceCR = require('./components/webhooksource-cr.json');
+```
+
+The Kubernetes namespace will be read from the `NAMESPACE` environemnt variable.
+
+```js
+const namespace = process.env.NAMESPACE || 'default';
+```
+
+The `main` function set up a Kubernetes client using the expected locations at your computer. When running the code inside the cluster the environment variable `NODE_ENV=production` should be set.
+
+```js
+        const kubeconfig = new KubeConfig();
+
+        if (process.env.NODE_ENV === 'production') {
+            kubeconfig.loadFromCluster();
+        } else {
+            kubeconfig.loadFromDefault();
+        }
+
+        const backend = new Request({ kubeconfig });
+        kubeclient = new Client({ backend });
+```
+
+The `kubeclient` object can now be used to connect to the cluster, but it knows nothing about TriggerMesh components. We need to inform it about the CRD schemas for the objects we want to manage:
+
+```js
+    kubeclient.addCustomResourceDefinition(webhookSourceCRD);
+```
+
+Now we just need to use the kubeclient to use the CRD API (identified by its group and version), at the namespace where we want to create the `WebhookSource`.
+
+```js
+        const whs = await kubeclient.apis[webhookSourceCRD.spec.group].v1alpha1.namespaces(namespace).webhooksources.post({ body: webhookSourceCR });
+        console.log('Created WebhookSource:', whs);
+```
+
+You can extend this tutorial:
+
+- Reading the CRD from the live cluster instead of from a local file.
+- Parametrizing the `WebhookSource` spec.
+- Adding operations to update and delete existing `WebhookSource`.
+- Managing other objects like `RedisBroker` or `Trigger`.
 
 ### Run It
 
-If you are running the application from a Kubernetes Pod, also set `NODE_ENV=production`
+- If you are running the application from a Kubernetes Pod, also set `NODE_ENV=production`
+- If the `node_modules` does not exists, run `npm install`
+
+Run the application pointing to the namespace where the `RedisBroker` is running.
 
 ```console
 NAMESPACE=tm-nodejs node main.js

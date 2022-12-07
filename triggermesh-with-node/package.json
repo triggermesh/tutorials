@@ -7,8 +7,16 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "TriggerMesh",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
     "kubernetes-client": "^9.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/triggermesh/tutorials.git#main"
+  },
+  "bugs": {
+    "url": "https://github.com/triggermesh/tutorials/issues"
+  },
+  "homepage": "https://github.com/triggermesh/tutorials/tree/main#readme"
 }
