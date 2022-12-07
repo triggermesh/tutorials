@@ -1,0 +1,24 @@
+{
+    "apiVersion": "sources.triggermesh.io/v1alpha1",
+    "kind": "WebhookSource",
+    "metadata": {
+      "name": "ws-with-node"
+    },
+    "spec": {
+      "eventType": "demo.type1",
+      "eventSource": "ws-with-node",
+      "eventExtensionAttributes": {
+        "from": [
+          "path",
+          "queries"
+        ]
+      },
+      "sink": {
+        "ref": {
+          "apiVersion": "eventing.triggermesh.io/v1alpha1",
+          "kind": "RedisBroker",
+          "name": "demo"
+        }
+      }
+    }
+  }
