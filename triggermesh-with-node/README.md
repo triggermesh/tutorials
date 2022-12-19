@@ -1,9 +1,9 @@
 # TriggerMesh with node.js
 
-In this tutorial we are going to programatically create a `WebhookSource` that is able to send events to an HTTP sink.
-For demoing purposes we are going to require [TriggerMesh stack](https://docs.triggermesh.io/installation/kubernetes-yaml/) deployed at the Kubernetes cluster. This enable us to use `WebhookSource` and our Brokers.
+In this tutorial we are going to programatically create a `HTTPPollerSource` that is able to send events to an HTTP sink.
+For demoing purposes we are going to require [TriggerMesh stack](https://docs.triggermesh.io/installation/kubernetes-yaml/) deployed at the Kubernetes cluster. This enable us to use `HTTPPollerSource` and our Brokers.
 
-![coded-webhook](assets/coded-webhooksource.png)
+![coded-httppoller](assets/coded-httppollersource.png)
 
 ## DevOps Tasks
 
@@ -29,9 +29,9 @@ kubectl apply -n tm-nodejs -f https://raw.githubusercontent.com/triggermesh/trig
 
 ## Dev Tasks
 
-Kubernetes CRDs must be downloaded and converted to JSON. This can be easily done using the cluster's CRDs in code, but we chose to provide the [JSON for WebhookSource](components/webhooksource-crd.json) to keep the code at minimum.
+Kubernetes CRDs must be downloaded and converted to JSON. This can be easily done using the cluster's CRDs in code, but we chose to provide the [JSON for HTTPPollerSource](components/httppollersource-crd.json) to keep the code at minimum.
 
-The [Webhook resource JSON](components/webhooksource-cr.json) is also provided. You can modify it, but keep in mind that the Trigger created will only let event types `demo.type1` through.
+The [Webhook resource JSON](components/httppollersource-cr.json) is also provided. You can modify it, but keep in mind that the Trigger created will only let event types `demo.type1` through.
 
 ### Code It
 
@@ -63,8 +63,8 @@ const Request = require('kubernetes-client/backends/request');
 CRDs are schemas that will validate and make it easy to code Kubernetes objects. These schemas can be retrieved from the live cluster or provided to the application locally, which is what we are doing here. First we load the CRD then the object that will be created (CR), into a variable. Feel free to modify the CR in your own way.
 
 ```js
-const webhookSourceCRD = require('./components/webhooksource-crd.json');
-const webhookSourceCR = require('./components/webhooksource-cr.json');
+const httppollerSourceCRD = require('./components/httppollersource-crd.json');
+const httppollerSourceCR = require('./components/httppollersource-cr.json');
 ```
 
 The Kubernetes namespace will be read from the `NAMESPACE` environemnt variable.
@@ -91,21 +91,21 @@ The `main` function set up a Kubernetes client using the expected locations at y
 The `kubeclient` object can now be used to connect to the cluster, but it knows nothing about TriggerMesh components. We need to inform it about the CRD schemas for the objects we want to manage:
 
 ```js
-    kubeclient.addCustomResourceDefinition(webhookSourceCRD);
+    kubeclient.addCustomResourceDefinition(httppollerSourceCRD);
 ```
 
-Now we just need to use the kubeclient to use the CRD API (identified by its group and version), at the namespace where we want to create the `WebhookSource`.
+Now we just need to use the kubeclient to use the CRD API (identified by its group and version), at the namespace where we want to create the `HTTPPollerSource`.
 
 ```js
-        const whs = await kubeclient.apis[webhookSourceCRD.spec.group].v1alpha1.namespaces(namespace).webhooksources.post({ body: webhookSourceCR });
-        console.log('Created WebhookSource:', whs);
+        const whs = await kubeclient.apis[httppollerSourceCRD.spec.group].v1alpha1.namespaces(namespace).httppollersources.post({ body: httppollerSourceCR });
+        console.log('Created HTTPPollerSource:', whs);
 ```
 
 You can extend this tutorial:
 
 - Reading the CRD from the live cluster instead of from a local file.
-- Parametrizing the `WebhookSource` spec.
-- Adding operations to update and delete existing `WebhookSource`.
+- Parametrizing the `HTTPPollerSource` spec.
+- Adding operations to update and delete existing `HTTPPollerSource`.
 - Managing other objects like `RedisBroker` or `Trigger`.
 
 ### Run It
@@ -119,12 +119,12 @@ Run the application pointing to the namespace where the `RedisBroker` is running
 NAMESPACE=tm-nodejs node main.js
 ```
 
-After issuing the command a new webhook should be ready to ingest events from your applications.
+After issuing the command a new httppoller should be ready to ingest events from your applications.
 
 ```console
-kubewclt get webhooksource -n tm-nodejs ws-with-node
+kubectl get httppollersource -n tm-nodejs ws-with-node
 NAME           READY   REASON   URL                                                                 SINK                                                AGE
-ws-with-node   True             https://webhooksource-ws-with-node-tm-nodejs.piper.triggermesh.io   http://demo-rb-broker.tm-nodejs.svc.cluster.local   78s
+ws-with-node   True             https://httppollersource-ws-with-node-tm-nodejs.piper.triggermesh.io   http://demo-rb-broker.tm-nodejs.svc.cluster.local   78s
 ```
 
 ### Clean Up
@@ -132,11 +132,11 @@ ws-with-node   True             https://webhooksource-ws-with-node-tm-nodejs.pip
 The easiest way to clean up would be.
 
 ```console
-kubectl delete webhooksources.sources.triggermesh.io -n tm-nodejs ws-with-node
+kubectl delete httppollersources.sources.triggermesh.io -n tm-nodejs ws-with-node
 ```
 
 But we would suggest extending the code remove it programatically. It is as simple as slightly modifying one line at the provided code!
 
 ```js
-        const whs = await kubeclient.apis[webhookSourceCRD.spec.group].v1alpha1.namespaces(namespace).webhooksources('ws-with-node').delete();
+        const whs = await kubeclient.apis[httppollerSourceCRD.spec.group].v1alpha1.namespaces(namespace).httppollersources('ws-with-node').delete();
 ```

@@ -2,9 +2,9 @@ const { Client, KubeConfig } = require('kubernetes-client');
 const Request = require('kubernetes-client/backends/request');
 
 // TriggerMesh component definition
-const webhookSourceCRD = require('./components/webhooksource-crd.json');
+const httppollerSourceCRD = require('./components/httppollersource-crd.json');
 // TriggerMesh component to be created
-const webhookSourceCR = require('./components/webhooksource-cr.json');
+const httppollerSourceCR = require('./components/httppollersource-cr.json');
 
 // Namespace can be customized by setting NAMESPACE environment variable
 const namespace = process.env.NAMESPACE || 'default';
@@ -31,12 +31,16 @@ async function main() {
         process.exit();
     }
 
-    kubeclient.addCustomResourceDefinition(webhookSourceCRD);
+    kubeclient.addCustomResourceDefinition(httppollerSourceCRD);
 
-    // create a WebhookSource object
+    // create an HTTPPollerSource object
     try {
-        const whs = await kubeclient.apis[webhookSourceCRD.spec.group].v1alpha1.namespaces(namespace).webhooksources.post({ body: webhookSourceCR });
-        console.log('Created WebhookSource:', whs);
+        const whs = await kubeclient.apis[httppollerSourceCRD.spec.group].v1alpha1.namespaces(namespace).httppollersources.post({ body: httppollerSourceCR });
+        console.log('Created HTTPPollerSource:', whs);
+
+        // HINT: do you want to delete the HTTPPollerSource? ... use this code:
+        // const whs = await kubeclient.apis[httppollerSourceCRD.spec.group].v1alpha1.namespaces(namespace).httppollersources('ws-with-node').delete();
+        // console.log('Deleted HTTPPollerSource:', whs);
     } catch (e) {
         console.error(e);
         process.exit();
