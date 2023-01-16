@@ -3,10 +3,6 @@ context:
   paths:
   - key: type
     value: $region-$category-v1
-  - key: extensions.region
-    value: $region
-  - key: extensions.category
-    value: $category
 data:
 - operation: store
   paths:
