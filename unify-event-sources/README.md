@@ -4,11 +4,18 @@ Shows how TriggerMesh can capture orders from heterogenous sources and transform
 
 ![image](schema.png)
 
+Tech specs
+* RedPanda v22.2.1 with docker compose
+* TriggerMesh 1.23 and tmctl 1.1.0
+* Dovker Desktop on MacOS
+
+Reach out on Slack or GitHub if you need help getting it to run on a different platform.
+
 ## Setup credentials, Kafka and TriggerMesh
 
 You can store the Kafka bootstrapServer URLs in file in the `config` folder called `bootstrap.servers.txt`
 
-For the AWS SQS source part of this demo (optional), you can store the AWS credentials in files in the `config` folder called `auth.credentials.accessKeyID.txt` and `auth.credentials.secretAccessKey.txt`.
+For the AWS SQS source part of this demo (optional), you can store the AWS credentials in files in the `config` folder called `auth.credentials.accessKeyID.txt` and `auth.credentials.secretAccessKey.txt`, and the queue's arn in `sqs.arn.txt`.
 
 The provided docker-compose file will start a single node RedPanda cluster. It is configured to work with docker desktop and could require some adjustments to the listeners and advertised listeners for it to work in other contexts. Reach out to us on Slack or GitHub if you need help, or see [here](https://www.confluent.io/blog/kafka-listeners-explained/) if you want to deep dive on this.
 
@@ -138,27 +145,27 @@ Now we should see EU topics getting the transformed version of the itemID, test 
 The next order management system whose events we need to integrate is pushing orders to us via HTTP. So we'll create a webhook source for that:
 
 ```sh
-tmctl create source webhook --name orders-webhook --eventType orders-webhook-raw
+tmctl create source webhook --name orders-webhook --eventType orders-legacy
 ```
 
-The event we're sending into the webhook (see mock-events/us_groceries_raw.json) is not formatted properly, so we'll transform it:
+The event we're sending into the webhook (see mock-events/legacy_event.json) is not formatted properly, so we'll transform it:
 
 ```sh
-tmctl create transformation --name transform-orders-webhook-raw -f transformations/orders-webhook-raw.yaml
-tmctl create trigger --eventTypes orders-webhook-raw --target transform-webhook-raw
+tmctl create transformation --name transform-orders-webhook-legacy -f transformations/orders-webhook-legacy.yaml
+tmctl create trigger --eventTypes orders-legacy --target transform-orders-webhook-legacy
 ```
 
 To test this, we can do:
 
 ```sh
-curl -X POST -H "Content-Type: application/json" -d @mock-events/webhook_raw.json <webhook URL>
+curl -X POST -H "Content-Type: application/json" -d @mock-events/legacy_event.json <webhook URL>
 ```
 
-To get the webhook’s URL, you can use tmctl describe and find the URL next to the webhook component called orders-webhook.
+To get the webhook’s URL, you can use `tmctl describe` and find the URL next to the webhook component called `orders-webhook`.
 
 ## Add a new HTTP poller source
 
-The next order management system whose events we need to integrate provides and HTTP API that we need to regularly poll for new events. First we'll start a mock HTTP service locally to simulate this service, in a new terminal. Start is at the root of this repo so it can access the right mock json events:
+The next order management system whose events we need to integrate provides and HTTP API that we need to regularly poll for new events. First we'll start a mock HTTP service locally to simulate this service, in a new terminal. Start it at the root of this repo so it can access the right mock json events:
 
 ```sh
 python3 -m http.server 8000
@@ -167,7 +174,7 @@ python3 -m http.server 8000
 Now we create the HTTP Poller:
 
 ```sh
-tmctl create source httppoller --name eu-books-httppoller --method GET --endpoint http://host.docker.internal:8000/mock-events/example_event_2.json --interval 10s --eventType io.triggermesh.kafka.event
+tmctl create source httppoller --name orders-httppoller --method GET --endpoint http://host.docker.internal:8000/mock-events/legacy_event.json --interval 10s --eventType io.triggermesh.kafka.event
 ```
 
 ## Add a new SQS source
@@ -175,7 +182,7 @@ tmctl create source httppoller --name eu-books-httppoller --method GET --endpoin
 Another team says they want to provide orders into the system from AWS SQS. Let's read from the queue. You need to provide the files with the AWS credentials.
 
 ```sh
-tmctl create source awssqs --arn arn:aws:sqs:us-east-1:043455440429:jmcx-queue --auth.credentials.accessKeyID $(cat config/auth.credentials.accessKeyID.txt) --auth.credentials.secretAccessKey $(cat config/auth.credentials.secretAccessKey.txt)
+tmctl create source awssqs --arn $(cat config/sqs.arn.txt) --auth.credentials.accessKeyID $(cat config/auth.credentials.accessKeyID.txt) --auth.credentials.secretAccessKey $(cat config/auth.credentials.secretAccessKey.txt)
 ```
 
 AWS SQS has lots of extra metadata we don't need, we'll extract the body of the SQS message so that the incoming event matches the schema we want:
@@ -183,15 +190,6 @@ AWS SQS has lots of extra metadata we don't need, we'll extract the body of the 
 ```sh
 tmctl create transformation --name transform-sqs-orders -f transformations/orders-transform-sqs.yaml
 tmctl create trigger --eventTypes com.amazon.sqs.message --target transform-sqs-orders
-```
-
-## Adding a new target topic on the fly
-
-We're asked to create a new topic for all eu orders, irrespective of category, for a new analytics team.
-
-```sh
-tmctl create target kafka --name orders-eu-all-target --topic orders-eu-all --bootstrapServers $(cat config/bootstrap.servers.txt)
-tmctl create trigger --eventTypes eu-fashion-v2,eu-books-v2 --target orders-global-electronics-target
 ```
 
 ## Running on K8s
