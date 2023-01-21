@@ -1,29 +1,21 @@
-# TriggerMesh demo
+# Use tmctl to unify events from heterogeneous sources
 
-Shows how TriggerMesh can capture orders from heterogenous sources and transform, filter and route them in a unified way. It leverages TriggerMesh command-line interface called `tmctl` to create this event flow.
+This tutorial demonstrates how to use TriggerMesh to capture orders from heterogenous sources and transform, filter and route them in a unified way. It leverages the TriggerMesh command-line interface called `tmctl`. The following schema depicts what we'll build throughout the tutorial.
 
 ![image](schema.png)
 
-Tech specs
-* RedPanda v22.2.1 with docker compose
-* TriggerMesh 1.23 and tmctl 1.1.0
-* Dovker Desktop on MacOS
-
 Reach out on Slack or GitHub if you need help getting it to run on a different platform.
 
-## Setup credentials, Kafka and TriggerMesh
+## Setup TriggerMesh
 
-You can store the Kafka bootstrapServer URLs in file in the `config` folder called `bootstrap.servers.txt`
-
-For the AWS SQS source part of this demo (optional), you can store the AWS credentials in files in the `config` folder called `auth.credentials.accessKeyID.txt` and `auth.credentials.secretAccessKey.txt`, and the queue's arn in `sqs.arn.txt`.
-
-The provided docker-compose file will start a single node RedPanda cluster. It is configured to work with docker desktop and could require some adjustments to the listeners and advertised listeners for it to work in other contexts. Reach out to us on Slack or GitHub if you need help, or see [here](https://www.confluent.io/blog/kafka-listeners-explained/) if you want to deep dive on this.
+Install tmctl by [following the documentation](https://docs.triggermesh.io/get-started/quickstart/). You can use homebrew or other methods:
 
 ```sh
-docker-compose up -d
+brew install triggermesh/cli/tmctl
+
 ```
 
-Create a TriggerMesh broker (install TriggerMesh's tmctl command line interface first):
+Create a TriggerMesh broker:
 
 ```sh
 tmctl create broker triggermesh
@@ -37,7 +29,17 @@ tmctl watch
 
 ## Ingest and transform orders from Kafka
 
-Create the main Kafka source that will ingest the raw orders. You'll first need to edit the bootstrap servers config value according to your environment, here it is configured for using docker desktop.
+The provided docker-compose file will start a single node RedPanda cluster. It is configured to work with docker desktop and could require some adjustments to the listeners and advertised listeners for it to work in other contexts. Reach out to us on Slack or GitHub if you need help, or see [here](https://www.confluent.io/blog/kafka-listeners-explained/) if you want to deep dive on this.
+
+We'll start RedPanda with the following command:
+
+```sh
+docker-compose up -d
+```
+
+You can store the Kafka bootstrapServer URLs in file in the `config` folder called `bootstrap.servers.txt`.
+
+Create the main Kafka source that will ingest the raw orders:
 
 ```sh
 tmctl create source kafka --name orders-source --topic orders --bootstrapServers $(cat config/bootstrap.servers.txt) --groupID mygroup
@@ -179,7 +181,11 @@ tmctl create source httppoller --name orders-httppoller --method GET --endpoint 
 
 ## Add a new SQS source
 
-Another team says they want to provide orders into the system from AWS SQS. Let's read from the queue. You need to provide the files with the AWS credentials.
+Another team says they want to provide orders into the system from AWS SQS.
+
+We'll store the AWS credentials in files in the `config` folder called `auth.credentials.accessKeyID.txt` and `auth.credentials.secretAccessKey.txt`, and the queue's ARN in `sqs.arn.txt`.
+
+Let's read from the queue by creating an SQS source:
 
 ```sh
 tmctl create source awssqs --arn $(cat config/sqs.arn.txt) --auth.credentials.accessKeyID $(cat config/auth.credentials.accessKeyID.txt) --auth.credentials.secretAccessKey $(cat config/auth.credentials.secretAccessKey.txt)
