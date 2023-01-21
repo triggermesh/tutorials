@@ -1,2 +1,6 @@
 **/node_modules/
 .DS_Store
+unify-event-sources/config/auth.credentials.accessKeyID.txt
+unify-event-sources/config/auth.credentials.secretAccessKey.txt
+unify-event-sources/config/bootstrap.servers.txt
+unify-event-sources/config/sqs.arn.txt
