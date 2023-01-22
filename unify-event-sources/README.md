@@ -55,11 +55,11 @@ Go to the orders topic and publish this:
   "ordertime": 1497014222380,
   "region": "eu",
   "category": "fashion",
-	"item": {
+  "item": {
     "itemid": "184",
-		"brand": "Patagonia",
+    "brand": "Patagonia",
     "category": "Kids",
-		"name": "Tribbles Hoody"
+    "name": "Tribbles Hoody"
 	}
 }
 ```
@@ -150,6 +150,8 @@ The next order management system whose events we need to integrate is pushing or
 tmctl create source webhook --name orders-webhook --eventType orders-legacy
 ```
 
+I’m giving the orders-legacy type to the orders coming from this webhook because they aren’t formatted according to the latest standards.
+
 The event we're sending into the webhook (see mock-events/legacy_event.json) is not formatted properly, so we'll transform it:
 
 ```sh
@@ -167,7 +169,9 @@ To get the webhook’s URL, you can use `tmctl describe` and find the URL next t
 
 ## Add a new HTTP poller source
 
-The next order management system whose events we need to integrate provides and HTTP API that we need to regularly poll for new events. First we'll start a mock HTTP service locally to simulate this service, in a new terminal. Start it at the root of this repo so it can access the right mock json events:
+The next order management system whose events we need to integrate provides and HTTP API that we need to regularly poll for new events. This service also produces the legacy order format that we’ll need to transform.
+
+First we'll start a mock HTTP service locally to simulate this service, in a new terminal. Start it at the root of this repo so it can access the right mock json events:
 
 ```sh
 python3 -m http.server 8000
@@ -176,8 +180,15 @@ python3 -m http.server 8000
 Now we create the HTTP Poller:
 
 ```sh
-tmctl create source httppoller --name orders-httppoller --method GET --endpoint http://host.docker.internal:8000/mock-events/legacy_event.json --interval 10s --eventType io.triggermesh.kafka.event
+tmctl create source httppoller --name orders-httppoller --method GET --endpoint http://host.docker.internal:8000/mock-events/legacy_event.json --interval 10s --eventType orders-legacy
 ```
+
+You can adjust the endpoint depending on your environment. I’m using host.docker.internal because I’m running on Docker Desktop.
+
+The beauty here is that we’re also setting the type of these events to order-legacy. This means that without any additional work, we know that these orders will get processed by the pipeline we just created for the webhook orders, meaning they’ll be reformatted to the new standard, transformed to extract the necessary metadata, etc…
+
+You should now see these events appearing in TriggerMesh every ten seconds and being routed to the orders-global-books Kafka topic.
+
 
 ## Add a new SQS source
 
