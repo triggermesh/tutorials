@@ -1,0 +1,18 @@
+context:
+- operation: add
+  paths:
+  - key: type
+    value: $region-$category-v2
+data:
+- operation: store
+  paths:
+  - key: $itemid
+    value: item.itemid
+  - key: $region
+    value: region
+  - key: $category
+    value: category
+- operation: add
+  paths:
+  - key: item.itemid
+    value: _item_uuid_$itemid
