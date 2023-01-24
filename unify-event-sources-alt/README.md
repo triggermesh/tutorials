@@ -107,7 +107,7 @@ Lets start sending the events to their destination topics.
 tmctl create target kafka --name orders-us-books-target --topic orders-us-books --bootstrapServers $(cat config/bootstrap.servers.txt)
 tmctl create target kafka --name orders-eu-fashion-target --topic orders-eu-fashion --bootstrapServers $(cat config/bootstrap.servers.txt)
 
-tmctl create trigger --name us-books --eventTypes us-books-v1 --target orders-global-books-target
+tmctl create trigger --name us-books --eventTypes us-books-v1 --target orders-us-books-target
 tmctl create trigger --name eu-fashion --eventTypes eu-fashion-v1 --target orders-eu-fashion-target
 ```
 
