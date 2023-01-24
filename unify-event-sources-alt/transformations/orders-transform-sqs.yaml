@@ -1,0 +1,19 @@
+context:
+- operation: add
+  paths:
+  - key: type
+    value: io.triggermesh.kafka.event
+data:
+- operation: store
+  paths:
+  - key: $payload
+    value: Body
+  - key: $category
+    value: category
+- operation: delete
+  paths:
+  - key:
+- operation: add
+  paths:
+  - key: 
+    value: $payload

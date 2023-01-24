@@ -1,0 +1,12 @@
+context:
+- operation: add
+  paths:
+  - key: type
+    value: $region-$category-v1
+data:
+- operation: store
+  paths:
+  - key: $region
+    value: region
+  - key: $category
+    value: category
