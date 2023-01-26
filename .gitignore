@@ -5,3 +5,5 @@ unify-event-sources/config/auth.credentials.secretAccessKey.txt
 unify-event-sources/config/bootstrap.servers.txt
 unify-event-sources/config/sqs.arn.txt
 asyncAPI/serviceaccountkey.json
+asyncAPI/package-lock.json
+asyncAPI/package.json
