@@ -85,24 +85,90 @@ servers:
 
 ### Channels
 
-The next
+I've defined one channel per order management system, each with its own reference to the server and bindings for its specific protocol. There may be ways to improve on this by creating a single channel that has different implementations depending on the server.
 
+```yaml
+channels:
+  orders:
+    description: Kafka topic to which orders are produced
+    servers:
+      - kafkaserver
+    subscribe:
+      message:
+        $ref: '#/components/messages/order'
+  /orders/order.json:
+    description: REST API endpoint that responds with an order
+    servers:
+      - httpserver
+    subscribe:
+      message:
+        $ref: '#/components/messages/order'
+      bindings:
+        http:
+          type: request
+          method: GET
+  orders-gcp:
+    description: Google pub/sub topic to which orders are produced
+    servers:
+      - googlepubsub
+    subscribe:
+      message:
+        $ref: '#/components/messages/order'
+      bindings:
+        googlepubsub:
+          topic: projects/jmcx-asyncapi/topics/ordersgcp
+```
 
+There is nothing overly special about the `order` message and schema so we don't need to go into detail on it here.
 
+We can see that by combining information from the servers and the channels, we have everything we need (except in some cases auth credentials) to create TriggerMesh source components that can subscribe to and read from these channels. Lets do that!
 
+## Generating the TriggerMesh source components
 
+Lets use the parser to generate some TriggerMesh components that will consume events from the channels defined in the AsyncAPI definition.
 
+Try running the following command:
 
+```sh
+node parser.js
+```
 
-Open a new terminal and start `watch` to watch events flowing through the broker:
+It should print the generated `tmctl` commands to standard out, and will also write them to the [tmctl.sh](tmctl.sh) file. It will overwrite the file on each run. It's contents should look something like this:
+
+```sh
+tmctl create broker TriggerMeshAsyncAPI
+tmctl create source kafka --name orders-kafkasource --topic orders --bootstrapServers host.docker.internal:9092 --groupID orders-group
+tmctl create source httppoller --name ordersorderjson-httppollersource --method GET --endpoint http://host.docker.internal:8000/order.json --interval 10s --eventType io.triggermesh.httppoller.event
+tmctl create source googlecloudpubsub --name orders-gcp-pubsubsource --topic projects/jmcx-asyncapi/topics/ordersgcp --serviceAccountKey $(cat serviceaccountkey.json)
+```
+
+The first command creates a lightweight event broker, the central component that will decouple event producers and consumers, and provide pub/sub style reliable delivery of events to their targets. The name of the broker is derived from the title of the AsyncAPI definition.
+
+Next, one source component is created per `channel` that provides a `subscribe` operation and has a reference to a `server` with a support protocol such as `http`, `kafka`, or `googlepubsub`.
+
+To get this working on your environment, you may want to play with the `bootstrapServers` value for the kafka source, and the endpoint `host` for the http poller source. You can change them in the AsyncAPI definition and then re-run the parser.
+You'll also need to create a file called `serviceaccountkey.json` with a GCP [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys), if you want to get the Google Pub/Sub channel working. If not, you can delete the pub/sub channel in the asyncAPI definition.
+
+You can visit the TriggerMesh documentation for the [Kafka source](https://docs.triggermesh.io/sources/kafka/), [HTTP Poller source](https://docs.triggermesh.io/sources/httppoller/), and [Google Pub/Sub source](https://docs.triggermesh.io/sources/googlecloudpubsub/) for more information on parameters and usage.
+
+We can now execute these `tmctl` commands to create the TriggerMesh components. You can either copy/paste them into your terminal, or run the generated script e.g. `sh tmctl.sh`, or pipe the output of the parser into the shell e.g `node parser.js | sh`.
+
+We'll also open a second terminal and start `tmctl watch` to watch events flowing through the broker:
 
 ```sh
 tmctl watch
 ```
 
-## Ingest and transform orders from Kafka
+## Orders are already coming in from the HTTP service
 
-Now we can send in an order and watch it land in broker. Do do this you can open the RedPanda console that was started in the docker compose and should be available at http://localhost:8080/ by default.
+The first thing you'll notice is that the HTTP poller is starting to produce events from the order management system that exposes the HTTP API, we can see the event showing up in the broker in the `tmctl watch` terminal:
+![image](graphics/poller-event.png)
+
+The poller is configured to fetch an event every 10 seconds. You can adjust the endpoint and other parameters depending on your environment and needs. I’m using host.docker.internal because I’m running on Docker Desktop.
+
+## Ingest orders from Kafka
+
+Now we can send an order to the `orders` topic and watch it land in the broker too. To do this you can open the RedPanda console that was started in the docker compose and should be available at http://localhost:8080/ by default.
 
 Go to the orders topic and publish this:
 
@@ -121,26 +187,42 @@ Go to the orders topic and publish this:
 }
 ```
 
-You should see it show up in the terminal that is running `tmctl watch`.
-
-## Add a new HTTP poller source of orders
-
-The next order management system whose events we need to integrate provides and HTTP API that we need to regularly poll for new events.
-
-First we'll start a mock HTTP service locally to simulate this service, in a new terminal. Start it at the root of this repo so it can access the right mock json events:
-
-```sh
-python3 -m http.server 8000
-```
-
-Now we create the HTTP Poller:
-
-```sh
-tmctl create source httppoller --name orders-httppoller --method GET --endpoint http://host.docker.internal:8000/mock-events/legacy_event.json --interval 10s --eventType orders-legacy
-```
-
-You can adjust the endpoint depending on your environment. I’m using host.docker.internal because I’m running on Docker Desktop.
+You should see it show up in the terminal that is running `tmctl watch`: ![image](graphics/watch-new-order.png)
 
 ## Pub/Sub
 
-tmctl create source googlecloudpubsub --name orders-gcp-pubsubsource --topic projects/jmcx-asyncapi/topics/ordersgcp --serviceAccountKey $(cat serviceaccountkey.json)
+The same idea goes for the Google pub/sub topic. You can head to GCP and publish an event there and it'll also show up in the TriggerMesh broker:
+
+![image](graphics/gcp-publish.png)
+
+## Routing all orders to a single Kafka topic
+
+We just showed how simple it was to capture `order` events from three different AsyncAPI channels with TriggerMesh. Now they are all arriving in our central broker, wrapped as CloudEvents so that they all have a uniform envelope that can be used to implement transformations and filters.
+
+Let's keep it simple here and route events from all sources to a new Kafka topic called `unified-orders`. To do that, we'll start by creating a new Kafka target:
+
+```sh
+tmctl create target kafka --name unified-orders-target --topic unified-orders --bootstrapServers <serverURL>
+```
+
+And then we can define a "catch-all" trigger that will send all events to that target:
+
+```sh
+tmctl create trigger --target unified-orders-target
+```
+
+Although we generally recommend being more specific when creating triggers by adding a list of event types that should fire the Trigger. For example I could send only the events from the HTTP service to the Kafka topic as such:
+
+```sh
+tmctl create trigger --target unified-orders-target --eventTypes io.triggermesh.httppoller.event
+```
+
+## Wrap-up
+
+We made quick work of piping events from multiple AsyncAPI channels into a single Kafka topic. By pairing AsyncAPI together with TriggerMesh, we can generate the TriggerMesh source components that will ingest and centralise the events into a broker. From there, we can start creating routes that will deliver filtered sets of events to different targets. We did this with a Kafka target but there are [many other targets available](https://docs.triggermesh.io/targets/kafka/).
+
+If you wanted to take this example further, you could implement some [JSON transformations](https://docs.triggermesh.io/transformation/jsontransformation/) that would standardise legacy order formats coming from some of the sources, or could customise the format for a specific consumer on a new Kafka topic (as show in the initial diagram). You could also model other parts of the architecture with their own AsyncAPI definitions.
+
+Oh and one more thing, try the `tmctl dump` command. It will produce Kubernetes manifests that you can deploy onto a Kubernetes cluster [with TriggerMesh installed](https://docs.triggermesh.io/installation/kubernetes-yaml/) and run these event flows as a Kubernetes-native application.
+
+Head to [AsyncAPI.com](https://www.asyncapi.com/) to learn more about AsyncAPI, and the [TriggerMesh quickstart](https://docs.triggermesh.io/get-started/quickstart/) if you want to try out `tmctl` for yourself. You can also reach the TriggerMesh community on [Slack](https://join.slack.com/t/triggermesh-community/shared_invite/zt-1kngevosm-MY7kqn9h6bT08hWh8PeltA) if you want to speak to engineers there directly. 

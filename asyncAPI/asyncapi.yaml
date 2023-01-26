@@ -28,7 +28,7 @@ channels:
     subscribe:
       message:
         $ref: '#/components/messages/order'
-  /orders/order.json:
+  /order.json:
     description: REST API endpoint that responds with an order
     servers:
       - httpserver
