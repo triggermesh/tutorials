@@ -1,0 +1,32 @@
+context:
+- operation: add
+  paths:
+  - key: type
+    value: io.triggermesh.kafka.event
+data:
+- operation: store
+  paths:
+  - key: $itemid
+    value: itemid
+  - key: $brand
+    value: brand
+  - key: $itemcategory
+    value: itemcategory
+  - key: $name
+    value: name
+- operation: add
+  paths:
+  - key: item.itemid
+    value: $itemid
+  - key: item.brand
+    value: $brand
+  - key: item.category
+    value: $itemcategory
+  - key: item.name
+    value: $name
+- operation: delete
+  paths:
+  - key: itemid
+  - key: brand
+  - key: itemcategory
+  - key: name

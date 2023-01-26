@@ -1,0 +1,92 @@
+asyncapi: '2.5.0'
+info:
+  title: TriggerMeshAsyncAPI
+  version: '1.0.0'
+  description: |
+    TriggerMesh and AsyncAPI demo.
+    ### What it does:
+    * Generates TriggerMesh tmctl commands from an AsyncAPI spec 😎
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  kafkaserver:
+    url: host.docker.internal:9092
+    protocol: kafka
+  httpserver:
+    url: http://host.docker.internal:8000
+    protocol: http
+  googlepubsub:
+    url: https://cloud.google.com
+    protocol: googlepubsub
+defaultContentType: application/json
+channels:
+  orders:
+    description: Kafka topic to which orders are produced
+    servers:
+      - kafkaserver
+    subscribe:
+      message:
+        $ref: '#/components/messages/order'
+  /order.json:
+    description: REST API endpoint that responds with an order
+    servers:
+      - httpserver
+    subscribe:
+      message:
+        $ref: '#/components/messages/order'
+      bindings:
+        http:
+          type: request
+          method: GET
+  orders-gcp:
+    description: Google pub/sub topic to which orders are produced
+    servers:
+      - googlepubsub
+    subscribe:
+      message:
+        $ref: '#/components/messages/order'
+      bindings:
+        googlepubsub:
+          topic: projects/jmcx-asyncapi/topics/ordersgcp
+components:
+  messages:
+    order:
+      name: order
+      title: Order
+      summary: An order that was produced by an order management system
+      payload:
+        $ref: "#/components/schemas/order"
+  schemas:
+    order:
+      type: object
+      properties:
+        orderid:
+          type: integer
+        ordertime:
+          type: string
+          format: date-time
+        region:
+          type: string
+          enum:
+            - eu
+            - us
+        category:
+          type: string
+          enum:
+            - fashion
+            - electronics
+            - books
+            - groceries
+            - pharma
+        item:
+          type: object
+          properties:
+            itemid:
+              type: number
+            brand:
+              type: string
+            category:
+              type: string
+            name:
+              type: string
