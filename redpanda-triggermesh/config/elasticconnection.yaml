@@ -1,0 +1,8 @@
+addresses:
+  - https://quickstart-es-http.default.svc.cluster.local:9200
+skipVerify: true
+username: elastic
+password:
+  secretKeyRef:
+    name: elasticsearch
+    key: ECK_PASSWORD

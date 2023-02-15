@@ -7,3 +7,8 @@ unify-event-sources/config/sqs.arn.txt
 asyncAPI/serviceaccountkey.json
 asyncAPI/package-lock.json
 asyncAPI/package.json
+redpanda-triggermesh/config/auth.credentials.accessKeyID.txt
+redpanda-triggermesh/config/auth.credentials.secretAccessKey.txt
+redpanda-triggermesh/config/bootstrap.servers.txt
+redpanda-triggermesh/config/sqs.arn.txt
+redpanda-triggermesh/config/elasticconnection.txt

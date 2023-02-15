@@ -1,0 +1,7 @@
+addresses:
+  - https://127.0.0.1:9200
+skipVerify: true
+apiKey:
+  secretKeyRef:
+    name: elasticsearchapikey
+    key: RDVoV1VJWUI3QTNHY0VOSUFPOXE6a3hfNkFLTU9UN3lSMG43SHo3bGk2UQ==
