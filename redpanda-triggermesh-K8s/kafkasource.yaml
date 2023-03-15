@@ -1,0 +1,16 @@
+apiVersion: sources.triggermesh.io/v1alpha1
+kind: KafkaSource
+metadata:
+  name: kafka-source
+spec:
+  groupID: test-consumer-group
+  bootstrapServers:
+    - redpanda-0.redpanda.redpanda.svc.cluster.local:9093
+    - redpanda-1.redpanda.redpanda.svc.cluster.local:9093
+    - redpanda-2.redpanda.redpanda.svc.cluster.local:9093
+  topic: test-topic
+  sink:
+    ref:
+      apiVersion: targets.triggermesh.io/v1alpha1
+      kind: AWSS3Target
+      name: aws-s3-target

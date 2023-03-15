@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: "<key>"
+  AWS_SECRET_ACCESS_KEY: "<secret>"
+
+---
+
+apiVersion: targets.triggermesh.io/v1alpha1
+kind: AWSS3Target
+metadata:
+  name: aws-s3-target
+spec:
+  arn: <arn>
+  auth:
+    credentials:
+      accessKeyID:
+        valueFromSecret:
+          name: aws
+          key: AWS_ACCESS_KEY_ID
+      secretAccessKey:
+        valueFromSecret:
+          name: aws
+          key: AWS_SECRET_ACCESS_KEY
