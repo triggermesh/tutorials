@@ -2,9 +2,9 @@
 
 ## Introduction
 
-Redpanda is increasingly easy to run on Kubernetes thanks to the availability of Helm charts and [plenty of guidance and documentation](https://docs.redpanda.com/docs/deploy/deployment-option/self-hosted/kubernetes/) to help you do this. But we have a hunch that some Redpanda users are missing a Kubernetes-native way to connect data sources and sinks to Redpanda. Kafka Connect predates containerisation technology and is not very idiomatic to Kubernetes. There is some interesting reading available such as [here](https://www.morling.dev/blog/ideation-kubernetes-native-kafka-connect/) and [here](https://redpanda.com/blog/kafka-kubernetes-deployment-pros-cons) that discuss some of the challenges of running Kafka Connect on K8s. 
+Redpanda is easy to run on Kubernetes thanks to the availability of Helm charts and [plenty of guidance and documentation](https://docs.redpanda.com/docs/deploy/deployment-option/self-hosted/kubernetes/) to help you do this. But we have a hunch that some Redpanda users are missing a Kubernetes-native way to connect data sources and sinks to Redpanda. Kafka Connect predates containerisation technology and is not very idiomatic to Kubernetes. There is some interesting reading available such as [here](https://www.morling.dev/blog/ideation-kubernetes-native-kafka-connect/) and [here](https://redpanda.com/blog/kafka-kubernetes-deployment-pros-cons) that discuss some of the challenges of running Kafka Connect on K8s. 
 
-An alternative to Kafka Connect in this scenario is [TriggerMesh](https://triggermesh.com/) which was built from the ground up to run natively on Kubernetes. It does this by providing Kubernetes controllers and Custom Resource Definitions which can be used do describe and deploy sources and sinks for Redpanda just like you would any other native Kubernetes object. TriggerMesh's Kafka connectors among its most popular, meaning it is well suited to act as a Kafka consumer or producer. And it can [connect to many other systems](https://www.triggermesh.com/connectors) that you might want to use as sources or sinks for Redpanda, such as Google Cloud Storage, Azure Storage, AWS SQS, HTTP APIs, MongoDB, and much more. 
+An alternative to Kafka Connect in this scenario is [TriggerMesh](https://triggermesh.com/) which was built from the ground up to run natively on Kubernetes. It does this by providing Kubernetes controllers and Custom Resource Definitions which can be used to describe and deploy sources and sinks for Redpanda just like you would any other native Kubernetes object. TriggerMesh's Kafka connectors are among its most popular, meaning it is well suited to act as a Kafka consumer or producer. And it can [connect to many other systems](https://www.triggermesh.com/connectors) that you might want to use as sources or sinks for Redpanda, such as Google Cloud Storage, Azure Storage, AWS SQS, HTTP APIs, MongoDB, and much more. 
 
 In this post we’ll go into a specific example of using TriggerMesh to stream data from a Redpanda topic into an AWS S3 bucket, with everything running the Kubernetes-native way. 
 
@@ -65,7 +65,7 @@ Waiting for 1 pods to be ready...
 statefulset rolling update complete 3 pods at revision redpanda-76d98b7647...
 ```
 
-You should see some sample commands in the ouput, such as checking the API status:
+You should see some sample commands in the output, such as checking the API status:
 
 ```sh
 kubectl -n redpanda exec -ti redpanda-0 -c redpanda -- rpk cluster info --brokers \
@@ -246,7 +246,7 @@ Head over to S3 and you should see the object there:
 
 ![image](s3-object.png)
 
-Well done! 
+Well done! You are now streaming data from Redpanda to AWS S3 🙂.
 
 ## TriggerMesh is a K8s-native way to connect with Redpanda
 
