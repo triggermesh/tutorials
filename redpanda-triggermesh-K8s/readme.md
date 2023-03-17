@@ -224,7 +224,7 @@ spec:
       name: aws-s3-target
 ```
 
-Save this to a file such called kakfasource.yaml and create the objects on your cluster:
+Save this to a file called kakfasource.yaml and create the objects on your cluster:
 
 ```sh
 kubectl apply -f kafkasource.yaml
