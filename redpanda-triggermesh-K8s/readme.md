@@ -89,7 +89,7 @@ TriggerMesh relies on Knative Serving to run some of its components as Knative S
 
 TriggerMesh will relax the dependency on Knative Serving in the near future. In the meantime, here is a quick guide for installing the Knative Serving.
 
-Begin by installing the Knative Operator:
+Begin by installing the Knative Operator [manifest](https://github.com/knative/operator/blob/knative-v1.8.5/config/manager/operator.yaml):
 
 ```sh
 kubectl apply -f https://github.com/knative/operator/releases/download/knative-v1.8.5/operator.yaml -n default
@@ -128,10 +128,10 @@ EOF
 Check the status of Knative Serving Custom Resource using the command (can take a minute before it displays as ready):
 
 ```sh
-kubectl get KnativeServing knative-serving -n knative-serving
+kubectl get KnativeServing knative-serving -n knative-serving --watch
 ```
 
-Finally configure Knative Serving to use Magic DNS (sslip.io) with:
+Finally configure Knative Serving to use the [sslip.io](sslip.io) DNS with the provided [manifest](https://github.com/knative/serving/releases/download/knative-v1.8.5/serving-default-domain.yaml):
 
 ```sh
 kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.8.5/serving-default-domain.yaml
