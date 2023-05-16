@@ -14,5 +14,9 @@ Open the Microcks GUI at `http://localhost:8080/`.
 
 Click on `Importers` in the left menu and create a new Importer. We'll use this to import the AsyncAPI file that defines the mock events and payload schemas that Microcks should use for testing.
 
+Import the provided AsyncAPI file: **TO FIX WHEN MERGED**
 
+```
+https://raw.githubusercontent.com/triggermesh/tutorials/microcks-mocks-and-tests/microcks-mocks-and-tests/asyncapi.yaml
+```
 
