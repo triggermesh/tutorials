@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "objectName": {
+      "type": "string"
+    },
+    "bucketName": {
+      "type": "string"
+    },
+    "timeCreated": {
+      "type": "string"
+    },
+    "size": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "objectName",
+    "bucketName",
+    "timeCreated",
+    "size"
+  ],
+  "examples": [{
+     "objectName": "MonaLisa.jpeg",
+     "bucketName": "jmcx-test",
+     "timeCreated": "2023-04-04T07:43:39.787Z",
+     "size": "61790"
+	}]
+}
