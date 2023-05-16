@@ -55,3 +55,8 @@ channels:
         description: A unified object storage notification
         payload:
           $ref: 'https://raw.githubusercontent.com/triggermesh/tutorials/microcks-mocks-and-tests/microcks-mocks-and-tests/io.triggermesh.objectStorage.objectCreated.json'
+        bindings:
+          kafka:
+            key:
+              type: string
+              description: Timestamp of event as milliseconds since 1st Jan 1970
