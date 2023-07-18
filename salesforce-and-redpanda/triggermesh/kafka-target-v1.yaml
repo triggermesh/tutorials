@@ -29,3 +29,9 @@ spec:
   filters:
   - prefix:
       subject: Account
+  delivery:
+    retry: 3
+    backoffDelay: PT5S
+    backoffPolicy: constant
+    deadLetterSink:
+      uri: https://triggermesh-console-tu4luqbmqq-uc.a.run.app/
