@@ -1,0 +1,31 @@
+apiVersion: flow.triggermesh.io/v1alpha1
+kind: Transformation
+metadata:
+  name: approval-transformation
+spec:
+  context:
+  - operation: add
+    paths:
+    - key: redpanda-approved
+      value: true
+
+---
+
+apiVersion: eventing.triggermesh.io/v1alpha1
+kind: Trigger
+metadata:
+  labels:
+  name: broker-to-transformation
+spec:
+  filters:
+  - prefix:
+      subject: Account
+  broker:
+    group: eventing.triggermesh.io
+    kind: RedisBroker
+    name: triggermesh-redis-broker
+  target:
+    ref:
+      apiVersion: flow.triggermesh.io/v1alpha1
+      kind: Transformation
+      name: approval-transformation

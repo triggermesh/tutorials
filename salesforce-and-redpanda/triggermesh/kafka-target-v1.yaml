@@ -27,8 +27,11 @@ spec:
       kind: KafkaTarget
       name: kafka-target
   filters:
-  - prefix:
-      subject: Account
+  - all:
+    - prefix:
+        subject: Account
+    - exact:
+        redpanda-approved: true
   delivery:
     retry: 3
     backoffDelay: PT5S
