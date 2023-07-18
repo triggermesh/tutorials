@@ -4,10 +4,22 @@ metadata:
   name: approval-transformation
 spec:
   context:
+  - operation: store
+    paths:
+    - key: $type
+      value: type
+  - operation: add
+    paths:
+    - key: type
+      value: $type.transformed
   - operation: add
     paths:
     - key: Extensions.redpandaApproved
       value: 'true'
+  data:
+  - operation: delete
+    paths:
+    - key: schema
 
 ---
 
@@ -18,8 +30,11 @@ metadata:
   name: broker-to-transformation
 spec:
   filters:
-  - prefix:
-      subject: Account
+  all: 
+    - exact:
+        type: com.salesforce.stream.message
+    - prefix:
+        subject: Account/UPDATE
   broker:
     group: eventing.triggermesh.io
     kind: RedisBroker
