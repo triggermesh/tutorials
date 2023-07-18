@@ -613,7 +613,15 @@ Defaulted container "redpanda" out of: redpanda, redpanda-configurator (init)
 
 ### Simulate a failure
 
-We'll change the KafkaTarget's bootstrap URL to something wrong:
+Start by deleting the KafkaTarget resource:
+
+```sh
+kubectl delete -f kafka-target-v1.yaml
+```
+
+This will ensure that old revisions of the target are gone before the next step.
+
+Then change the KafkaTarget's bootstrap URL to something wrong:
 
 ```yaml
 apiVersion: targets.triggermesh.io/v1alpha1
