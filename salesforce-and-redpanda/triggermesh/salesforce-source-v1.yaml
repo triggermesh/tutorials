@@ -9,8 +9,8 @@ spec:
     replayID: -2
 
   auth:
-    clientID: <your consumer key, e.g. 3MVG9OvGYd.....>
-    user: <your Salesforce user login email, e.g. bob2@amce.com>
+    clientID: 3MVG9_kZcLde7U5rGnIkSry6Ck6shXQh40PbIfjhuQdGsELrUvJISQlnSwHGFJGqM_eXQoROtKmRgI65U9qTs
+    user: jonathan2@triggermesh.com
     server: https://login.salesforce.com
     certKey:
       valueFromSecret:
