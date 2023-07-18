@@ -6,7 +6,7 @@ spec:
   context:
   - operation: add
     paths:
-    - key: Extensions.redpanda-approved
+    - key: Extensions.redpandaApproved
       value: 'true'
 
 ---
