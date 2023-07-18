@@ -30,7 +30,7 @@ spec:
   - prefix:
       subject: Account
   delivery:
-    retry: 3
+    retry: 4
     backoffDelay: PT5S
     backoffPolicy: constant
     deadLetterSink:
