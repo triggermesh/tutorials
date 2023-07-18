@@ -576,6 +576,12 @@ spec:
   filters:
   - prefix:
       subject: Account
+  delivery:
+    retry: 3
+    backoffDelay: PT5S
+    backoffPolicy: constant
+    deadLetterSink:
+      uri: https://triggermesh-console-tu4luqbmqq-uc.a.run.app/
 ```
 
 As you can see above, the Trigger includes a filter which will match events whose "subject" metadata starts with the value `Account`. 
@@ -604,6 +610,27 @@ Defaulted container "redpanda" out of: redpanda, redpanda-configurator (init)
   "offset": 0
 }
 ```
+
+### Simulate a failure
+
+We'll change the KafkaTarget's bootstrap URL to something wrong:
+
+```yaml
+apiVersion: targets.triggermesh.io/v1alpha1
+kind: KafkaTarget
+metadata:
+  name: kafka-target
+  namespace: sfdc-to-redpanda
+spec:
+  bootstrapServers:
+    - wrong.one-node-cluster.redpanda.svc.cluster.local:9092
+  topic: salesforce-account-events
+  discardCloudEventContext: true
+```
+
+Apply this change, and then modify the account in Salesforce once again. 
+
+
 
 ## Push events from Redpanda back into Salesforce
 
