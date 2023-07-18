@@ -1,0 +1,5 @@
+apiVersion: eventing.triggermesh.io/v1alpha1
+kind: RedisBroker
+metadata:
+  name: triggermesh-redis-broker
+  namespace: sfdc-to-redpanda

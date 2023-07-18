@@ -1,0 +1,31 @@
+apiVersion: targets.triggermesh.io/v1alpha1
+kind: KafkaTarget
+metadata:
+  name: kafka-target
+  namespace: sfdc-to-redpanda
+spec:
+  bootstrapServers:
+    - one-node-cluster-0.one-node-cluster.redpanda.svc.cluster.local:9092
+  topic: salesforce-account-events
+  discardCloudEventContext: true
+
+---
+
+apiVersion: eventing.triggermesh.io/v1alpha1
+kind: Trigger
+metadata:
+  name: saleforce-events-trigger
+  namespace: sfdc-to-redpanda
+spec:
+  broker:
+    group: eventing.triggermesh.io
+    kind: RedisBroker
+    name: triggermesh-redis-broker
+  target:
+    ref:
+      apiVersion: targets.triggermesh.io/v1alpha1
+      kind: KafkaTarget
+      name: kafka-target
+  filters:
+  - prefix:
+      subject: Account
