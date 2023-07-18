@@ -30,8 +30,8 @@ spec:
   - all:
     - prefix:
         subject: Account
-    - exact:
-        redpandaApproved: 'true'
+    - prefix:
+        type: approved
   delivery:
     retry: 3
     backoffDelay: PT5S

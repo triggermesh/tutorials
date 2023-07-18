@@ -11,11 +11,7 @@ spec:
   - operation: add
     paths:
     - key: type
-      value: $type.transformed
-  - operation: add
-    paths:
-    - key: Extensions.redpandaApproved
-      value: 'true'
+      value: approved.$type
   data:
   - operation: delete
     paths:
