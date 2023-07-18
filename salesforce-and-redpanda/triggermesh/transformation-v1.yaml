@@ -29,8 +29,9 @@ spec:
     - all: 
       - exact:
           type: com.salesforce.stream.message
-      - prefix:
-          subject: Account/UPDATE
+      - any:
+        - prefix:
+            subject: Account/UPDATE
   broker:
     group: eventing.triggermesh.io
     kind: RedisBroker
