@@ -5,7 +5,7 @@ metadata:
   namespace: sfdc-to-redpanda
 spec:
   bootstrapServers:
-    - wrong-node-cluster-0.one-node-cluster.redpanda.svc.cluster.local:9092
+    - one-node-cluster-0.one-node-cluster.redpanda.svc.cluster.local:9092
   topic: salesforce-account-events
   discardCloudEventContext: true
 
