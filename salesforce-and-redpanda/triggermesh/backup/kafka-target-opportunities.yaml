@@ -1,0 +1,40 @@
+apiVersion: targets.triggermesh.io/v1alpha1
+kind: KafkaTarget
+metadata:
+  name: kafka-target-opportunities
+  namespace: sfdc-to-redpanda
+spec:
+  bootstrapServers:
+    - one-node-cluster-0.one-node-cluster.redpanda.svc.cluster.local:9092
+  topic: salesforce-opportunity-events
+  discardCloudEventContext: true
+
+---
+
+apiVersion: eventing.triggermesh.io/v1alpha1
+kind: Trigger
+metadata:
+  name: saleforce-events-opportunities-trigger
+  namespace: sfdc-to-redpanda
+spec:
+  broker:
+    group: eventing.triggermesh.io
+    kind: RedisBroker
+    name: triggermesh-redis-broker
+  target:
+    ref:
+      apiVersion: targets.triggermesh.io/v1alpha1
+      kind: KafkaTarget
+      name: kafka-target-opportunities
+  filters:
+  - all:
+    - prefix:
+        subject: Opportunity
+    - prefix:
+        type: approved
+  delivery:
+    retry: 3
+    backoffDelay: PT5S
+    backoffPolicy: constant
+    deadLetterSink:
+      uri: https://triggermesh-console-tu4luqbmqq-uc.a.run.app/

@@ -638,11 +638,27 @@ spec:
 
 Apply this change, and then modify the account in Salesforce once again. 
 
+The event should appear in the Event Display, but not in the Redpanda topic. 
+
+After a few seconds, you'll see the event appear in the TriggerMesh console, because it is set as the dead letter sink.
 
 
-## Push events from Redpanda back into Salesforce
+### Update the routing rules
 
-## Monitor
+We'll update the transformation's trigger to also include account creation events. They will be approved, and therefore also sent to the Kafka target. 
+
+```yaml
+- prefix:
+  subject: Account/CREATE
+```
+
+### Add a new Kafka topic for Opportunities
+
+We'll create a new Kafka target and Trigger for opportunities.
+
+
+
+
 
 [salesforce-stream-api-docs]: https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/
 [salesforce-oauth-jwt]: https://help.salesforce.com/articleView?id=remoteaccess_oauth_jwt_flow.htm
