@@ -32,6 +32,8 @@ spec:
       - any:
         - prefix:
             subject: Account/UPDATE
+        - prefix:
+            subject: Account/CREATE
   broker:
     group: eventing.triggermesh.io
     kind: RedisBroker
